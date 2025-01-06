@@ -26,25 +26,48 @@
 
 <body>
     <div class="container my-5">
-        <h1 class="mb-4"><B>Gradio Lite 테스트 페이지</B></h1>
-        <p>
-            아래에 Gradio Lite 코드를 입력한 후, <strong>"실행"</strong> 버튼을
-            클릭하면 결과를 확인할 수 있습니다.
-        </p>
+        <h1 class="mb-4"><b>Gradio Lite 테스트 페이지</b></h1>
+        <p>아래의 두 탭에서 필요한 정보를 입력한 후, <strong>"실행"</strong> 버튼을 클릭하면 결과를 확인할 수 있습니다.</p>
 
-        <!-- Gradio Lite 코드 입력 영역 -->
-        <div class="mb-3">
-            <label for="codeInput" class="form-label">Gradio Lite 코드 입력</label>
-            <textarea class="form-control" id="codeInput" rows="5">import gradio as gr
+        <!-- 탭 영역 -->
+        <ul class="nav nav-tabs" id="tabMenu" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="requirements-tab" data-bs-toggle="tab" data-bs-target="#requirements"
+                    type="button" role="tab">Gradio Requirements</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="file-tab" data-bs-toggle="tab" data-bs-target="#file"
+                    type="button" role="tab">Gradio File</button>
+            </li>
+        </ul>
+        <div class="tab-content mt-3">
+            <!-- Requirements Tab -->
+            <div class="tab-pane fade show active" id="requirements" role="tabpanel">
+                <label for="requirementsInput" class="form-label">Gradio Requirements 입력</label>
+                <textarea class="form-control" id="requirementsInput" rows="3">transformers_js_py</textarea>
+            </div>
+            <!-- File Tab -->
+            <div class="tab-pane fade" id="file" role="tabpanel">
+                <label for="fileInput" class="form-label">Gradio File 입력</label>
+                <textarea class="form-control" id="fileInput" rows="10">
+from transformers_js import import_transformers_js
+import gradio as gr
 
-def greet(name):
-    return "Hello, " + name + "!"
+transformers = await import_transformers_js()
+pipeline = transformers.pipeline
+pipe = await pipeline('sentiment-analysis')
 
-gr.Interface(greet, "textbox", "textbox").launch()</textarea>
+async def classify(text):
+    return await pipe(text)
+
+demo = gr.Interface(classify, "textbox", "json")
+demo.launch()
+                </textarea>
+            </div>
         </div>
 
         <!-- 버튼 영역 -->
-        <div class="mb-4">
+        <div class="mb-4 mt-3">
             <button class="btn btn-primary me-2" onclick="runCode()">실행</button>
             <button class="btn btn-secondary me-2" onclick="clearCode()">지우기</button>
             <a class="btn btn-warning me-2" href="https://www.gradio.app/playground" target="_blank">
@@ -56,7 +79,6 @@ gr.Interface(greet, "textbox", "textbox").launch()</textarea>
         <div class="card">
             <div class="card-body preview" id="preview">
                 <gradio-lite>
-                    
                 </gradio-lite>
             </div>
         </div>
@@ -65,7 +87,8 @@ gr.Interface(greet, "textbox", "textbox").launch()</textarea>
     <!-- 실행/지우기 스크립트 -->
     <script>
         function runCode() {
-            const code = document.getElementById('codeInput').value;
+            const requirements = document.getElementById('requirementsInput').value.trim();
+            const fileCode = document.getElementById('fileInput').value.trim();
             const preview = document.getElementById('preview');
 
             // 이전 미리보기 내용 제거
@@ -73,15 +96,27 @@ gr.Interface(greet, "textbox", "textbox").launch()</textarea>
 
             // 새로운 <gradio-lite> 요소 생성
             const gradioLite = document.createElement('gradio-lite');
-            gradioLite.textContent = code;
-            console.log(gradioLite.textContent);    
+
+            // <gradio-requirements> 추가
+            const requirementsElement = document.createElement('gradio-requirements');
+            requirementsElement.textContent = requirements;
+            gradioLite.appendChild(requirementsElement);
+
+            // <gradio-file> 추가
+            const fileElement = document.createElement('gradio-file');
+            fileElement.setAttribute('name', 'app.py');
+            fileElement.setAttribute('entrypoint', '');
+            fileElement.textContent = fileCode;
+            gradioLite.appendChild(fileElement);
+
             // <gradio-lite> 요소를 미리보기 영역에 추가
             preview.appendChild(gradioLite);
         }
 
         function clearCode() {
-            // 텍스트 영역 초기화
-            document.getElementById('codeInput').value = '';
+            // 입력 영역 초기화
+            document.getElementById('requirementsInput').value = '';
+            document.getElementById('fileInput').value = '';
             // 미리보기 영역 초기화
             document.getElementById('preview').innerHTML = '<gradio-lite></gradio-lite>';
         }
